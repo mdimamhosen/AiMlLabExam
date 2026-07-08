@@ -1,0 +1,43 @@
+AI Prompt History
+
+Prompt 1:
+I have an exam instruction PDF for an AI-assisted machine learning project. Read the PDF and identify all required tasks and submission files.
+
+Useful output:
+The project must predict heart disease. It needs dataset understanding, EDA, preprocessing, feature engineering, three models, evaluation, feature importance, AI reflection, recommendations, notebook, script, PDF report, prompt history, and cleaned CSV.
+
+My modification:
+I selected a dataset that matches the hospital heart disease scenario.
+
+Prompt 2:
+Find a proper heart disease dataset that is simple enough for a beginner ML classification project and explain the target variable.
+
+Useful output:
+The UCI Cleveland Heart Disease dataset is suitable. The target is num/target_raw where 0 means no disease and values 1-4 mean disease. This can be converted into binary classification.
+
+My modification:
+I downloaded the official UCI processed Cleveland data and renamed the columns clearly.
+
+Prompt 3:
+Write easy Python code for cleaning, EDA, feature engineering, training Logistic Regression, Random Forest, and SVM, then compare Accuracy, Precision, Recall, F1-score, ROC-AUC, and confusion matrix.
+
+Useful output:
+Use pandas for cleaning, matplotlib for plots, and scikit-learn pipelines for Logistic Regression, Random Forest, and SVM.
+
+My modification:
+I kept the code simple, used median/mode imputation, IQR outlier capping, one-hot encoding, scaling, and clear feature names.
+
+Prompt 4:
+Create a short final report section by section explaining the work, model results, AI prompts, limitations, ethics, privacy, and deployment recommendations.
+
+Useful output:
+The report should follow the exact exam tasks and include model comparison plus the best model justification.
+
+My modification:
+I generated the final PDF report from the actual model results saved by the script.
+
+AI mistakes noticed:
+AI first suggested some extra complex ideas, but I kept the code simple for an exam project.
+
+Improvements made:
+I used the official UCI source, made the target binary, avoided complex code, and included explanations for every major step.
