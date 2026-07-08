@@ -8,7 +8,8 @@ import pandas as pd
 import joblib
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import (
     Image,
@@ -338,11 +339,16 @@ def make_table(data, column_widths=None):
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f4e79")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#f7fbff")),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f2f6fa")]),
+                ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#c7d3df")),
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
             ]
         )
     )
@@ -351,7 +357,7 @@ def make_table(data, column_widths=None):
 
 def add_heading(story, styles, text):
     story.append(Paragraph(text, styles["Heading2"]))
-    story.append(Spacer(1, 0.08 * inch))
+    story.append(Spacer(1, 0.06 * inch))
 
 
 def add_text(story, styles, text):
@@ -359,16 +365,71 @@ def add_text(story, styles, text):
     story.append(Spacer(1, 0.08 * inch))
 
 
-def create_report(raw_df, clean_df, engineered_df, metrics, baseline_metrics, top_features, best_model_name):
-    doc = SimpleDocTemplate(str(REPORT_FILE), pagesize=A4, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
+def draw_footer(canvas, doc):
+    canvas.saveState()
+    canvas.setStrokeColor(colors.HexColor("#d9e1e8"))
+    canvas.line(36, 24, A4[0] - 36, 24)
+    canvas.setFont("Helvetica", 8)
+    canvas.setFillColor(colors.HexColor("#667085"))
+    canvas.drawString(36, 12, "AI-Assisted Heart Disease Prediction Project")
+    canvas.drawRightString(A4[0] - 36, 12, f"Page {doc.page}")
+    canvas.restoreState()
+
+
+def build_report_styles():
     styles = getSampleStyleSheet()
+    styles["Title"].fontName = "Helvetica-Bold"
+    styles["Title"].fontSize = 22
+    styles["Title"].leading = 27
+    styles["Title"].textColor = colors.HexColor("#12355b")
+    styles["Title"].alignment = TA_CENTER
+    styles["Title"].spaceAfter = 14
+
+    styles["Heading2"].fontName = "Helvetica-Bold"
+    styles["Heading2"].fontSize = 14
+    styles["Heading2"].leading = 18
+    styles["Heading2"].textColor = colors.HexColor("#1f4e79")
+    styles["Heading2"].spaceBefore = 12
+    styles["Heading2"].spaceAfter = 6
+
+    styles["BodyText"].fontName = "Helvetica"
+    styles["BodyText"].fontSize = 9.5
+    styles["BodyText"].leading = 13.5
+    styles["BodyText"].textColor = colors.HexColor("#243447")
+    styles["BodyText"].spaceAfter = 4
+
+    styles.add(
+        ParagraphStyle(
+            name="Subtitle",
+            parent=styles["BodyText"],
+            alignment=TA_CENTER,
+            fontSize=10.5,
+            leading=14,
+            textColor=colors.HexColor("#52616f"),
+        )
+    )
+    return styles
+
+
+def create_report(raw_df, clean_df, engineered_df, metrics, baseline_metrics, top_features, best_model_name):
+    doc = SimpleDocTemplate(str(REPORT_FILE), pagesize=A4, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=42)
+    styles = build_report_styles()
     story = []
 
     story.append(Paragraph("AI-Assisted Heart Disease Prediction Project", styles["Title"]))
-    story.append(Spacer(1, 0.2 * inch))
-    add_text(story, styles, "Course: Artificial Intelligence | Final Examination")
-    add_text(story, styles, "Scenario: HealthPlus Hospital needs an AI system to predict whether a patient has heart disease.")
-    add_text(story, styles, "Dataset used: UCI Cleveland Heart Disease dataset from the UCI Machine Learning Repository.")
+    story.append(Paragraph("Course: Artificial Intelligence | Final Examination", styles["Subtitle"]))
+    story.append(Paragraph("Scenario: HealthPlus Hospital needs an AI system to predict heart disease.", styles["Subtitle"]))
+    story.append(Spacer(1, 0.16 * inch))
+    story.append(make_table(
+        [
+            ["Dataset", "UCI Cleveland Heart Disease dataset"],
+            ["Problem Type", "Binary classification"],
+            ["Best Model", best_model_name],
+            ["Best Accuracy", f"{metrics[best_model_name]['accuracy']:.2%}"],
+        ],
+        [1.5 * inch, 4.8 * inch],
+    ))
+    story.append(Spacer(1, 0.12 * inch))
 
     add_heading(story, styles, "1. Dataset Understanding")
     add_text(story, styles, "Target variable: target. It is made from target_raw. Value 0 means no heart disease and values 1-4 mean heart disease. This is a binary classification problem.")
@@ -401,7 +462,7 @@ def create_report(raw_df, clean_df, engineered_df, metrics, baseline_metrics, to
 
     add_heading(story, styles, "3. Data Cleaning and Preprocessing")
     add_text(story, styles, "Missing numeric values were filled with the median because the median is less affected by extreme values. Missing categorical values were filled with the mode because it is the most common category.")
-    add_text(story, styles, "Duplicates were removed. Numeric outliers were capped using the IQR method. IQR means Interquartile Range. It is Q3 minus Q1, where Q1 is the 25th percentile and Q3 is the 75th percentile. Values below Q1 - 1.5*IQR or above Q3 + 1.5*IQR are treated as outliers and capped.")
+    add_text(story, styles, "Duplicates were removed. Numeric outliers were capped using the IQR method. IQR means Interquartile Range. Q1 means the first quartile, or the 25th percentile, so 25% of values are below Q1. Q3 means the third quartile, or the 75th percentile, so 75% of values are below Q3. IQR is calculated as Q3 - Q1. Values below Q1 - 1.5*IQR or above Q3 + 1.5*IQR are treated as outliers and capped.")
     add_text(story, styles, "Categorical variables were one-hot encoded. Numeric variables were scaled because Logistic Regression and SVM work better when numeric values are on a similar scale.")
 
     add_heading(story, styles, "4. Feature Engineering")
@@ -484,7 +545,7 @@ def create_report(raw_df, clean_df, engineered_df, metrics, baseline_metrics, to
     add_text(story, styles, "Limitations: the dataset is small and old, so results may not generalize to all hospital patients. Bias can happen if the patient group does not represent the real population. Data leakage was avoided by splitting train/test before model fitting inside pipelines.")
     add_text(story, styles, "Ethics and privacy: patient data must be protected, anonymized, and used only with permission. The model should support doctors, not replace doctors. For deployment, the hospital should validate the model on newer local patient data before real use.")
 
-    doc.build(story)
+    doc.build(story, onFirstPage=draw_footer, onLaterPages=draw_footer)
 
 
 def save_notebook():

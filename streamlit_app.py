@@ -1,12 +1,28 @@
 import json
 
-import joblib
 import pandas as pd
 import streamlit as st
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
-MODEL_PATH = "output/best_heart_disease_model.joblib"
+CLEAN_DATA_PATH = "heart_disease_cleaned.csv"
 METRICS_PATH = "output/model_metrics.json"
+
+NUMERIC_COLUMNS = ["age", "trestbps", "chol", "thalach", "oldpeak"]
+CATEGORICAL_COLUMNS = ["sex", "cp", "fbs", "restecg", "exang", "slope", "ca", "thal"]
+ENGINEERED_COLUMNS = [
+    "age_group",
+    "cholesterol_risk",
+    "bp_risk",
+    "heart_rate_gap",
+    "oldpeak_high",
+    "risk_count",
+]
+FEATURE_COLUMNS = NUMERIC_COLUMNS + CATEGORICAL_COLUMNS + ENGINEERED_COLUMNS
 
 
 SEX_OPTIONS = {"Female": 0, "Male": 1}
@@ -57,9 +73,50 @@ def add_features(df):
     return df
 
 
+def build_model():
+    numeric_features = [
+        "age",
+        "trestbps",
+        "chol",
+        "thalach",
+        "oldpeak",
+        "heart_rate_gap",
+        "risk_count",
+    ]
+    categorical_features = [column for column in FEATURE_COLUMNS if column not in numeric_features]
+
+    numeric_steps = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler()),
+        ]
+    )
+    categorical_steps = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("onehot", OneHotEncoder(handle_unknown="ignore")),
+        ]
+    )
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("num", numeric_steps, numeric_features),
+            ("cat", categorical_steps, categorical_features),
+        ]
+    )
+    return Pipeline(
+        steps=[
+            ("preprocess", preprocessor),
+            ("model", RandomForestClassifier(n_estimators=200, random_state=42)),
+        ]
+    )
+
+
 @st.cache_resource
 def load_model():
-    return joblib.load(MODEL_PATH)
+    df = pd.read_csv(CLEAN_DATA_PATH)
+    model = build_model()
+    model.fit(df[FEATURE_COLUMNS], df["target"])
+    return model
 
 
 @st.cache_data
