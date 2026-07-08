@@ -449,15 +449,39 @@ def create_report(raw_df, clean_df, engineered_df, metrics, baseline_metrics, to
     story.append(Spacer(1, 0.12 * inch))
     add_text(story, styles, "Class distribution means how many records belong to each target class. In this project, it shows how many patients have no heart disease and how many patients have heart disease. It is important because a highly unbalanced dataset can make a model look accurate while still missing the smaller class.")
     add_text(story, styles, "EDA plots show that the target is fairly balanced, older age and lower maximum heart rate are connected with disease, and chest pain type plus exercise angina are strong warning signs. The correlation matrix also shows useful relationships with oldpeak and thalach.")
-    for name in [
-        "01_class_distribution.png",
-        "02_age_distribution.png",
-        "03_chest_pain_rate.png",
-        "04_thalach_age_scatter.png",
-        "05_exang_rate.png",
-        "06_correlation_matrix.png",
-    ]:
+    figure_notes = [
+        (
+            "01_class_distribution.png",
+            "Figure 1: Class distribution. This chart compares patients with no heart disease and patients with heart disease. The classes are fairly balanced, so accuracy is more meaningful than it would be in a highly imbalanced dataset.",
+        ),
+        (
+            "02_age_distribution.png",
+            "Figure 2: Age distribution by target. This chart shows how age is spread across both classes. Heart disease cases appear more common in older age groups, which means age is a useful risk-related feature.",
+        ),
+        (
+            "03_chest_pain_rate.png",
+            "Figure 3: Heart disease rate by chest pain type. Some chest pain categories have a higher disease rate than others. This supports using chest pain type as an important categorical feature.",
+        ),
+        (
+            "04_thalach_age_scatter.png",
+            "Figure 4: Maximum heart rate versus age. The scatter plot helps show how heart rate and age relate to the target. Lower maximum heart rate and higher age are often connected with higher risk.",
+        ),
+        (
+            "05_exang_rate.png",
+            "Figure 5: Disease rate by exercise induced angina. Patients with exercise induced angina show a higher heart disease rate. This makes exang an important warning feature.",
+        ),
+        (
+            "06_correlation_matrix.png",
+            "Figure 6: Correlation matrix. This heatmap shows relationships between numeric features and the target. It helps identify useful predictors and also checks whether features are strongly related to each other.",
+        ),
+        (
+            "07_oldpeak_boxplot.png",
+            "Figure 7: Oldpeak by target. This boxplot compares oldpeak values for disease and no disease patients. Higher oldpeak values are more common in heart disease cases, so oldpeak is an important medical signal.",
+        ),
+    ]
+    for name, note in figure_notes:
         story.append(Image(str(FIGURE_DIR / name), width=4.8 * inch, height=3.2 * inch))
+        add_text(story, styles, note)
         story.append(Spacer(1, 0.12 * inch))
 
     add_heading(story, styles, "3. Data Cleaning and Preprocessing")
@@ -504,6 +528,7 @@ def create_report(raw_df, clean_df, engineered_df, metrics, baseline_metrics, to
     add_heading(story, styles, "7. Model Interpretation")
     story.append(Image(str(FIGURE_DIR / "08_feature_importance.png"), width=5.0 * inch, height=3.2 * inch))
     story.append(Spacer(1, 0.12 * inch))
+    add_text(story, styles, "Figure 8: Feature importance. This chart ranks the top features used by the best model. Features with higher importance influenced the model prediction more strongly.")
     feature_rows = [["Feature", "Importance"]]
     for _, row in top_features.iterrows():
         feature_rows.append([str(row["feature"]), round(float(row["importance"]), 4)])
