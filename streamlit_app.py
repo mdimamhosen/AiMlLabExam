@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
@@ -9,8 +10,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
-CLEAN_DATA_PATH = "heart_disease_cleaned.csv"
-METRICS_PATH = "output/model_metrics.json"
+BASE_DIR = Path(__file__).resolve().parent
+CLEAN_DATA_PATH = BASE_DIR / "heart_disease_cleaned.csv"
+METRICS_PATH = BASE_DIR / "output" / "model_metrics.json"
 
 NUMERIC_COLUMNS = ["age", "trestbps", "chol", "thalach", "oldpeak"]
 CATEGORICAL_COLUMNS = ["sex", "cp", "fbs", "restecg", "exang", "slope", "ca", "thal"]
@@ -125,6 +127,21 @@ def load_metrics():
         return json.load(file)
 
 
+def require_project_files():
+    missing_files = [
+        str(path.relative_to(BASE_DIR))
+        for path in [CLEAN_DATA_PATH, METRICS_PATH]
+        if not path.exists()
+    ]
+    if missing_files:
+        st.error(
+            "The app cannot start because required project files are missing: "
+            + ", ".join(missing_files)
+        )
+        st.info("Run the app from the project folder or restore the missing output files.")
+        st.stop()
+
+
 def make_input_row(values):
     return pd.DataFrame([values])
 
@@ -191,45 +208,177 @@ st.set_page_config(page_title="Heart Disease Prediction", layout="wide")
 st.markdown(
     """
     <style>
-    .main-title {
-        font-size: 34px;
-        font-weight: 700;
-        margin-bottom: 4px;
+    :root {
+        --app-bg: #080b10;
+        --app-surface: #111827;
+        --app-surface-soft: #17111a;
+        --app-border: #3a1720;
+        --app-muted: #c7aeb6;
+        --app-text: #fff5f7;
+        --app-primary: #ef233c;
+        --app-primary-soft: #7f1d1d;
+        --app-danger: #ff3b4f;
+        --app-success: #22c55e;
     }
-    .sub-title {
-        color: #54606c;
-        font-size: 16px;
-        margin-bottom: 18px;
+    .stApp {
+        background:
+            radial-gradient(circle at top left, rgba(239, 35, 60, 0.22), transparent 32rem),
+            linear-gradient(135deg, #080b10 0%, #12080d 52%, #080b10 100%);
+        color: var(--app-text);
     }
-    .result-box {
-        border: 1px solid #d9e1e8;
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+        max-width: 1220px;
+    }
+    div[data-testid="stMetric"] {
+        background: rgba(17, 24, 39, 0.88);
+        border: 1px solid var(--app-border);
+        border-radius: 8px;
+        padding: 14px 16px;
+        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
+    }
+    div[data-testid="stMetric"] label,
+    div[data-testid="stMetric"] [data-testid="stMetricValue"] {
+        color: var(--app-text);
+    }
+    div[data-testid="stForm"] {
+        background: rgba(17, 24, 39, 0.9);
+        border: 1px solid var(--app-border);
         border-radius: 8px;
         padding: 22px;
-        background: #f8fafc;
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
+    }
+    section[data-testid="stSidebar"] {
+        background: #0b0f16;
+        border-right: 1px solid var(--app-border);
+    }
+    h1, h2, h3, h4, h5, h6,
+    .stMarkdown, .stCaption, label, p {
+        color: var(--app-text);
+    }
+    .stSelectbox div[data-baseweb="select"],
+    .stNumberInput input,
+    .stTextInput input,
+    .stDataFrame,
+    div[data-testid="stDataEditor"] {
+        color: var(--app-text);
+    }
+    div[data-baseweb="select"] > div,
+    input,
+    textarea {
+        background-color: #0f1724 !important;
+        border-color: #4a1c27 !important;
+        color: var(--app-text) !important;
+    }
+    .stButton > button,
+    .stDownloadButton > button,
+    div[data-testid="stFormSubmitButton"] button {
+        background: linear-gradient(135deg, #ef233c 0%, #991b1b 100%);
+        border: 1px solid #ff5a6b;
+        color: #ffffff;
+        border-radius: 8px;
+        font-weight: 700;
+        box-shadow: 0 12px 30px rgba(239, 35, 60, 0.25);
+    }
+    .stButton > button:hover,
+    .stDownloadButton > button:hover,
+    div[data-testid="stFormSubmitButton"] button:hover {
+        border-color: #ff8090;
+        color: #ffffff;
+        filter: brightness(1.08);
+    }
+    .main-title {
+        color: var(--app-text);
+        font-size: 40px;
+        line-height: 1.1;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    .sub-title {
+        color: var(--app-muted);
+        font-size: 16px;
+        margin-bottom: 24px;
+        max-width: 760px;
+    }
+    .hero-panel {
+        border: 1px solid var(--app-border);
+        border-radius: 8px;
+        padding: 24px;
+        background:
+            linear-gradient(135deg, rgba(239, 35, 60, 0.24), rgba(17, 24, 39, 0.92)),
+            #111827;
+        margin-bottom: 22px;
+        box-shadow: 0 22px 56px rgba(0, 0, 0, 0.36);
+    }
+    .section-copy {
+        color: var(--app-muted);
+        margin-top: -8px;
+        margin-bottom: 16px;
+    }
+    .result-box {
+        border: 1px solid var(--app-border);
+        border-radius: 8px;
+        padding: 22px 24px;
+        background: rgba(17, 24, 39, 0.92);
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
+    }
+    .result-box h3 {
+        margin-top: 0;
+        margin-bottom: 8px;
+        color: var(--app-text);
     }
     .risk-high {
-        border-left: 6px solid #d92d20;
+        border-left: 6px solid var(--app-danger);
     }
     .risk-low {
-        border-left: 6px solid #07803a;
+        border-left: 6px solid var(--app-success);
+    }
+    div[data-testid="stAlert"] {
+        background: rgba(127, 29, 29, 0.24);
+        border-color: #7f1d1d;
+        color: var(--app-text);
+    }
+    hr {
+        border-color: #34121a;
     }
     .small-note {
-        color: #667085;
+        color: var(--app-muted);
         font-size: 13px;
+    }
+    .sidebar-note {
+        color: var(--app-muted);
+        font-size: 13px;
+        line-height: 1.45;
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-model = load_model()
-metrics = load_metrics()
+require_project_files()
+
+try:
+    model = load_model()
+    metrics = load_metrics()
+except Exception as error:
+    st.error("The app started, but the model or metric files could not be loaded.")
+    st.exception(error)
+    st.stop()
+
 best_model_name = metrics["best_model"]
 best_metrics = metrics["engineered"][best_model_name]
 
-st.markdown('<div class="main-title">Heart Disease Prediction System</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="sub-title">Enter patient data at the top, then view the prediction below.</div>',
+    """
+    <div class="hero-panel">
+        <div class="main-title">Heart Disease Prediction System</div>
+        <div class="sub-title">
+            A clean Streamlit dashboard for single-patient and batch heart disease risk prediction.
+            Enter the clinical values, run the model, and review the result with readable labels.
+        </div>
+    </div>
+    """,
     unsafe_allow_html=True,
 )
 
@@ -240,11 +389,15 @@ metric_col3.metric("Recall", f"{best_metrics['recall']:.2%}")
 metric_col4.metric("ROC-AUC", f"{best_metrics['roc_auc']:.2%}")
 
 with st.sidebar:
-    st.header("Project Info")
-    st.write("AI final exam heart disease prediction app.")
-    st.write("Best model:", best_model_name)
-    st.write("Accuracy:", f"{best_metrics['accuracy']:.2%}")
-    st.caption("Educational project only. Not for real diagnosis.")
+    st.title("Project Info")
+    st.caption("AI/ML final exam app")
+    st.metric("Best model", best_model_name)
+    st.metric("Accuracy", f"{best_metrics['accuracy']:.2%}")
+    st.metric("Recall", f"{best_metrics['recall']:.2%}")
+    st.markdown(
+        '<p class="sidebar-note">Educational project only. This is not a medical diagnosis tool.</p>',
+        unsafe_allow_html=True,
+    )
 
 st.divider()
 

@@ -47,6 +47,10 @@ METRICS_FILE = OUTPUT_DIR / "model_metrics.json"
 MODEL_FILE = OUTPUT_DIR / "best_heart_disease_model.joblib"
 REPORT_FILE = Path("Final_Report_Heart_Disease.pdf")
 PROMPT_FILE = Path("AI_Prompt_History.txt")
+STREAMLIT_URL = "https://heartdiseaseaimllabfinal.streamlit.app/"
+STREAMLIT_SCREENSHOT = Path("screencapture-heartdiseaseaimllabfinal-streamlit-app-2026-07-08-22_07_54.png")
+REPORT_DATE = "July 8, 2026"
+RESEARCH_TITLE = "AI-Assisted Heart Disease Prediction Project"
 
 
 COLUMNS = [
@@ -339,16 +343,58 @@ def make_table(data, column_widths=None):
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f4e79")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#16456f")),
                 ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#f7fbff")),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f2f6fa")]),
-                ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#c7d3df")),
+                ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#fbfdff")),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f4f8fc")]),
+                ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#d7e0e8")),
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("FONTSIZE", (0, 0), (-1, -1), 8),
-                ("TOPPADDING", (0, 0), (-1, -1), 6),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 7),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+            ]
+        )
+    )
+    return table
+
+
+def make_callout(text, styles, background="#eaf4ff", border="#1f78b4"):
+    table = Table([[Paragraph(text, styles["CalloutText"])]], colWidths=[6.7 * inch])
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(background)),
+                ("BOX", (0, 0), (-1, -1), 0.9, colors.HexColor(border)),
+                ("LEFTPADDING", (0, 0), (-1, -1), 12),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+                ("TOPPADDING", (0, 0), (-1, -1), 10),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ]
+        )
+    )
+    return table
+
+
+def make_metric_cards(metrics_data, styles):
+    row = []
+    for label, value in metrics_data:
+        row.append(Paragraph(f'<font color="#52616f">{label}</font><br/><b>{value}</b>', styles["MetricCard"]))
+    table = Table([row], colWidths=[1.58 * inch] * len(row))
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f8fbfe")),
+                ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#d4e1ec")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#e3ebf2")),
+                ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                ("TOPPADDING", (0, 0), (-1, -1), 10),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ]
         )
     )
@@ -365,10 +411,17 @@ def add_text(story, styles, text):
     story.append(Spacer(1, 0.08 * inch))
 
 
+def add_caption(story, styles, text):
+    story.append(Paragraph(text, styles["Caption"]))
+    story.append(Spacer(1, 0.12 * inch))
+
+
 def draw_footer(canvas, doc):
     canvas.saveState()
-    canvas.setStrokeColor(colors.HexColor("#d9e1e8"))
-    canvas.line(36, 24, A4[0] - 36, 24)
+    canvas.setStrokeColor(colors.HexColor("#d8e3ec"))
+    canvas.setFillColor(colors.HexColor("#f8fbfe"))
+    canvas.rect(0, 0, A4[0], 32, fill=1, stroke=0)
+    canvas.line(36, 32, A4[0] - 36, 32)
     canvas.setFont("Helvetica", 8)
     canvas.setFillColor(colors.HexColor("#667085"))
     canvas.drawString(36, 12, "AI-Assisted Heart Disease Prediction Project")
@@ -379,22 +432,26 @@ def draw_footer(canvas, doc):
 def build_report_styles():
     styles = getSampleStyleSheet()
     styles["Title"].fontName = "Helvetica-Bold"
-    styles["Title"].fontSize = 22
-    styles["Title"].leading = 27
+    styles["Title"].fontSize = 23
+    styles["Title"].leading = 29
     styles["Title"].textColor = colors.HexColor("#12355b")
     styles["Title"].alignment = TA_CENTER
-    styles["Title"].spaceAfter = 14
+    styles["Title"].spaceAfter = 10
 
     styles["Heading2"].fontName = "Helvetica-Bold"
-    styles["Heading2"].fontSize = 14
-    styles["Heading2"].leading = 18
-    styles["Heading2"].textColor = colors.HexColor("#1f4e79")
-    styles["Heading2"].spaceBefore = 12
+    styles["Heading2"].fontSize = 13.5
+    styles["Heading2"].leading = 17
+    styles["Heading2"].textColor = colors.HexColor("#16456f")
+    styles["Heading2"].backColor = colors.HexColor("#eef6fc")
+    styles["Heading2"].borderColor = colors.HexColor("#c8ddeb")
+    styles["Heading2"].borderWidth = 0.6
+    styles["Heading2"].borderPadding = 5
+    styles["Heading2"].spaceBefore = 14
     styles["Heading2"].spaceAfter = 6
 
     styles["BodyText"].fontName = "Helvetica"
-    styles["BodyText"].fontSize = 9.5
-    styles["BodyText"].leading = 13.5
+    styles["BodyText"].fontSize = 9.2
+    styles["BodyText"].leading = 13.2
     styles["BodyText"].textColor = colors.HexColor("#243447")
     styles["BodyText"].spaceAfter = 4
 
@@ -408,6 +465,91 @@ def build_report_styles():
             textColor=colors.HexColor("#52616f"),
         )
     )
+    styles.add(
+        ParagraphStyle(
+            name="CalloutText",
+            parent=styles["BodyText"],
+            alignment=TA_CENTER,
+            fontName="Helvetica-Bold",
+            fontSize=10.8,
+            leading=15.2,
+            textColor=colors.HexColor("#12355b"),
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            name="MetricCard",
+            parent=styles["BodyText"],
+            alignment=TA_CENTER,
+            fontSize=8.4,
+            leading=12.8,
+            textColor=colors.HexColor("#12355b"),
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            name="Caption",
+            parent=styles["BodyText"],
+            fontSize=8.7,
+            leading=12.2,
+            textColor=colors.HexColor("#35475a"),
+            leftIndent=8,
+            rightIndent=8,
+            backColor=colors.HexColor("#f7fafc"),
+            borderColor=colors.HexColor("#d6e2ec"),
+            borderWidth=0.35,
+            borderPadding=7,
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            name="WebsiteCard",
+            parent=styles["BodyText"],
+            fontSize=8.8,
+            leading=12.7,
+            textColor=colors.HexColor("#243447"),
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            name="MiniHeading",
+            parent=styles["BodyText"],
+            fontName="Helvetica-Bold",
+            fontSize=10.2,
+            leading=13.5,
+            textColor=colors.HexColor("#16456f"),
+            spaceBefore=8,
+            spaceAfter=4,
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            name="LetterTitle",
+            parent=styles["Title"],
+            fontSize=21,
+            leading=27,
+            spaceAfter=18,
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            name="LetterMeta",
+            parent=styles["BodyText"],
+            fontSize=9.5,
+            leading=14,
+            textColor=colors.HexColor("#243447"),
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            name="Signature",
+            parent=styles["BodyText"],
+            fontSize=9.5,
+            leading=14,
+            leftIndent=0,
+            spaceBefore=10,
+        )
+    )
     return styles
 
 
@@ -419,17 +561,24 @@ def create_report(raw_df, clean_df, engineered_df, metrics, baseline_metrics, to
     story.append(Paragraph("AI-Assisted Heart Disease Prediction Project", styles["Title"]))
     story.append(Paragraph("Course: Artificial Intelligence | Final Examination", styles["Subtitle"]))
     story.append(Paragraph("Scenario: HealthPlus Hospital needs an AI system to predict heart disease.", styles["Subtitle"]))
-    story.append(Spacer(1, 0.16 * inch))
-    story.append(make_table(
-        [
-            ["Dataset", "UCI Cleveland Heart Disease dataset"],
-            ["Problem Type", "Binary classification"],
-            ["Best Model", best_model_name],
-            ["Best Accuracy", f"{metrics[best_model_name]['accuracy']:.2%}"],
-        ],
-        [1.5 * inch, 4.8 * inch],
+    story.append(Spacer(1, 0.08 * inch))
+    story.append(make_callout(
+        f'<link href="{STREAMLIT_URL}">Live Streamlit Website: {STREAMLIT_URL}</link>',
+        styles,
+        background="#e8f4ff",
+        border="#1f78b4",
     ))
-    story.append(Spacer(1, 0.12 * inch))
+    story.append(Spacer(1, 0.14 * inch))
+    story.append(make_metric_cards(
+        [
+            ("Dataset", "UCI Cleveland"),
+            ("Problem Type", "Binary classification"),
+            ("Best Model", best_model_name),
+            ("Best Accuracy", f"{metrics[best_model_name]['accuracy']:.2%}"),
+        ],
+        styles,
+    ))
+    story.append(Spacer(1, 0.14 * inch))
 
     add_heading(story, styles, "1. Dataset Understanding")
     add_text(story, styles, "Target variable: target. It is made from target_raw. Value 0 means no heart disease and values 1-4 mean heart disease. This is a binary classification problem.")
@@ -452,37 +601,36 @@ def create_report(raw_df, clean_df, engineered_df, metrics, baseline_metrics, to
     figure_notes = [
         (
             "01_class_distribution.png",
-            "Figure 1: Class distribution. This chart compares patients with no heart disease and patients with heart disease. The classes are fairly balanced, so accuracy is more meaningful than it would be in a highly imbalanced dataset.",
+            "Figure 1: Class distribution. This chart compares patients with no heart disease and patients with heart disease. It confirms that both target classes have enough records for training and testing. Because the classes are fairly balanced, accuracy is more meaningful than it would be in a highly imbalanced dataset, but recall and F1-score are still important for a medical prediction problem.",
         ),
         (
             "02_age_distribution.png",
-            "Figure 2: Age distribution by target. This chart shows how age is spread across both classes. Heart disease cases appear more common in older age groups, which means age is a useful risk-related feature.",
+            "Figure 2: Age distribution by target. This chart shows how patient ages are spread across the disease and no disease groups. The disease group appears more common in older age ranges, while younger patients are more often in the no disease group. This supports keeping age as a model input and also explains why the engineered age_group feature can help the model learn age-related risk patterns.",
         ),
         (
             "03_chest_pain_rate.png",
-            "Figure 3: Heart disease rate by chest pain type. Some chest pain categories have a higher disease rate than others. This supports using chest pain type as an important categorical feature.",
+            "Figure 3: Heart disease rate by chest pain type. This chart calculates the disease rate inside each chest pain category instead of only counting records. Some categories have a much higher positive rate, which means chest pain type gives useful diagnostic information. Since the values are categories, one-hot encoding is used before model training so the algorithms can use this feature properly.",
         ),
         (
             "04_thalach_age_scatter.png",
-            "Figure 4: Maximum heart rate versus age. The scatter plot helps show how heart rate and age relate to the target. Lower maximum heart rate and higher age are often connected with higher risk.",
+            "Figure 4: Maximum heart rate versus age. Each point represents one patient, with color showing the target class. The plot helps compare two important numeric features together. Many higher-risk patients are older and have lower maximum heart rate values, so the model receives both original features and the engineered heart_rate_gap feature to capture this relationship more clearly.",
         ),
         (
             "05_exang_rate.png",
-            "Figure 5: Disease rate by exercise induced angina. Patients with exercise induced angina show a higher heart disease rate. This makes exang an important warning feature.",
+            "Figure 5: Disease rate by exercise induced angina. This chart compares patients who do and do not have exercise induced angina. The disease rate is higher for patients with exercise angina, which makes exang a strong warning feature. It is also included in the engineered risk_count feature because it adds useful clinical risk information.",
         ),
         (
             "06_correlation_matrix.png",
-            "Figure 6: Correlation matrix. This heatmap shows relationships between numeric features and the target. It helps identify useful predictors and also checks whether features are strongly related to each other.",
+            "Figure 6: Correlation matrix. This heatmap shows the strength and direction of relationships between numeric features and the target. Positive colors mean two values tend to increase together, while negative colors mean one tends to decrease when the other increases. The matrix helps identify useful predictors such as oldpeak and thalach and also checks whether numeric inputs are too strongly related to each other.",
         ),
         (
             "07_oldpeak_boxplot.png",
-            "Figure 7: Oldpeak by target. This boxplot compares oldpeak values for disease and no disease patients. Higher oldpeak values are more common in heart disease cases, so oldpeak is an important medical signal.",
+            "Figure 7: Oldpeak by target. This boxplot compares the oldpeak distribution for patients with and without heart disease. The middle line shows the median, the box shows the main spread, and outlying points show unusual values. Heart disease patients generally have higher oldpeak values, so oldpeak and oldpeak_high are useful predictors for the classification model.",
         ),
     ]
     for name, note in figure_notes:
         story.append(Image(str(FIGURE_DIR / name), width=4.8 * inch, height=3.2 * inch))
-        add_text(story, styles, note)
-        story.append(Spacer(1, 0.12 * inch))
+        add_caption(story, styles, note)
 
     add_heading(story, styles, "3. Data Cleaning and Preprocessing")
     add_text(story, styles, "Missing numeric values were filled with the median because the median is less affected by extreme values. Missing categorical values were filled with the mode because it is the most common category.")
@@ -528,7 +676,7 @@ def create_report(raw_df, clean_df, engineered_df, metrics, baseline_metrics, to
     add_heading(story, styles, "7. Model Interpretation")
     story.append(Image(str(FIGURE_DIR / "08_feature_importance.png"), width=5.0 * inch, height=3.2 * inch))
     story.append(Spacer(1, 0.12 * inch))
-    add_text(story, styles, "Figure 8: Feature importance. This chart ranks the top features used by the best model. Features with higher importance influenced the model prediction more strongly.")
+    add_caption(story, styles, "Figure 8: Feature importance. This chart ranks the top features used by the best model. Features with higher importance influenced the model prediction more strongly. The chart is useful because it connects the model result back to understandable medical inputs, helping explain why a prediction may be high or low instead of treating the model as a black box.")
     feature_rows = [["Feature", "Importance"]]
     for _, row in top_features.iterrows():
         feature_rows.append([str(row["feature"]), round(float(row["importance"]), 4)])
@@ -570,10 +718,61 @@ def create_report(raw_df, clean_df, engineered_df, metrics, baseline_metrics, to
     add_text(story, styles, "Limitations: the dataset is small and old, so results may not generalize to all hospital patients. Bias can happen if the patient group does not represent the real population. Data leakage was avoided by splitting train/test before model fitting inside pipelines.")
     add_text(story, styles, "Ethics and privacy: patient data must be protected, anonymized, and used only with permission. The model should support doctors, not replace doctors. For deployment, the hospital should validate the model on newer local patient data before real use.")
 
+    story.append(PageBreak())
+    add_heading(story, styles, "10. Streamlit Web App and Deployment")
+    story.append(make_callout(
+        f'The project is deployed as a working Streamlit app: <link href="{STREAMLIT_URL}">{STREAMLIT_URL}</link><br/>'
+        "The app turns the trained machine learning pipeline into an interactive prediction interface for single-patient and multi-patient testing.",
+        styles,
+        background="#eefaf4",
+        border="#299764",
+    ))
+    story.append(Spacer(1, 0.12 * inch))
+    if STREAMLIT_SCREENSHOT.exists():
+        story.append(Image(str(STREAMLIT_SCREENSHOT), width=6.2 * inch, height=3.3 * inch))
+        add_caption(story, styles, "Website screenshot: the deployed page shows a dashboard-style prediction system. The top area gives the selected model and evaluation scores, the center area collects patient information, and the lower area supports batch prediction for multiple rows.")
+
+    website_features = [
+        [
+            Paragraph('<font color="white"><b>Website Area</b></font>', styles["WebsiteCard"]),
+            Paragraph('<font color="white"><b>Purpose and Functionality</b></font>', styles["WebsiteCard"]),
+        ],
+        [
+            Paragraph("Model summary", styles["WebsiteCard"]),
+            Paragraph("Shows the best model, accuracy, recall, and ROC-AUC so the user can see the model quality before using predictions.", styles["WebsiteCard"]),
+        ],
+        [
+            Paragraph("Single-patient form", styles["WebsiteCard"]),
+            Paragraph("Collects readable medical inputs using sliders, radio buttons, and dropdowns. The form is designed so users do not need to type raw model codes.", styles["WebsiteCard"]),
+        ],
+        [
+            Paragraph("Prediction result", styles["WebsiteCard"]),
+            Paragraph("Displays whether heart disease risk is detected and shows the predicted probability when the model supports probability output.", styles["WebsiteCard"]),
+        ],
+        [
+            Paragraph("Patient summary", styles["WebsiteCard"]),
+            Paragraph("Shows the selected values in a clean table and includes an expandable technical table with the numeric values sent to the model.", styles["WebsiteCard"]),
+        ],
+        [
+            Paragraph("Batch input", styles["WebsiteCard"]),
+            Paragraph("Lets the user edit multiple patient rows, predict all rows together, view the results, and download a CSV output file.", styles["WebsiteCard"]),
+        ],
+    ]
+    story.append(make_table(website_features, [1.8 * inch, 4.8 * inch]))
+
+    story.append(PageBreak())
+    story.append(Paragraph("Function Call Flow", styles["MiniHeading"]))
+    add_text(story, styles, "<b>How the app works internally:</b> Streamlit runs streamlit_app.py as a Python web app. At startup, load_model reads heart_disease_cleaned.csv, builds the same preprocessing pipeline, trains the Random Forest model, and stores it in st.cache_resource. This cache keeps the app fast because the model is not rebuilt every time a widget changes. load_metrics reads output/model_metrics.json through st.cache_data so the dashboard metrics can be shown quickly.")
+    add_text(story, styles, "<b>Single-patient prediction flow:</b> the user selects values in the form, clicks Predict This Patient, and Streamlit reruns the script. The readable labels are converted to numeric model values, make_input_row creates a one-row DataFrame, add_features creates age_group, cholesterol_risk, bp_risk, heart_rate_gap, oldpeak_high, and risk_count, then model.predict and model.predict_proba return the prediction and probability.")
+    add_text(story, styles, "<b>Batch prediction flow:</b> the editable table accepts multiple patient rows. readable_to_model_data converts each readable row into the model's required column format. predict_rows adds the same engineered features for every row, calls the trained model, appends prediction labels and probabilities, and lets the user download the results as a CSV file.")
+
     doc.build(story, onFirstPage=draw_footer, onLaterPages=draw_footer)
 
 
 def save_notebook():
+    if Path("Heart_Disease_Final_Exam.ipynb").exists():
+        return
+
     notebook = {
         "cells": [
             {
