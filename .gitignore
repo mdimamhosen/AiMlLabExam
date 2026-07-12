@@ -4,3 +4,5 @@ __pycache__/
 streamlit.log
 streamlit.err.log
 tmp/
+config.bat
+node_modules
