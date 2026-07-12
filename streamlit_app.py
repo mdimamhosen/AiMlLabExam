@@ -429,7 +429,7 @@ with st.form("patient_form"):
         vessel_label = st.selectbox("Major Vessels Seen in Fluoroscopy", list(VESSEL_OPTIONS.keys()))
         thal_label = st.selectbox("Thalassemia Result", list(THAL_OPTIONS.keys()))
 
-    predict_clicked = st.form_submit_button("Predict This Patient", width="stretch")
+    predict_clicked = st.form_submit_button("Predict This Patient", use_container_width=True)
 
 input_values = {
     "age": age,
@@ -509,7 +509,7 @@ with right:
             }
         ]
     )
-    st.dataframe(readable_summary, width="stretch", hide_index=True)
+    st.dataframe(readable_summary, use_container_width=True, hide_index=True)
 
     with st.expander("Technical values sent to the model"):
         display_df = patient_df.rename(
@@ -526,7 +526,7 @@ with right:
                 "thal": "thal_code",
             }
         )
-        st.dataframe(display_df, width="stretch", hide_index=True)
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
 
 st.divider()
 
@@ -536,7 +536,7 @@ st.write("Add or edit rows in this table, then predict all rows together.")
 editable_df = st.data_editor(
     default_patient_table(),
     num_rows="dynamic",
-    width="stretch",
+    use_container_width=True,
     hide_index=True,
     column_config={
         "Age": st.column_config.NumberColumn("Age", min_value=20, max_value=100, step=1),
@@ -571,7 +571,7 @@ editable_df = st.data_editor(
     },
 )
 
-if st.button("Predict All Entered Patients", width="stretch"):
+if st.button("Predict All Entered Patients", use_container_width=True):
     try:
         batch_model_df = readable_to_model_data(editable_df)
         batch_predictions, batch_probabilities = predict_rows(model, batch_model_df)
@@ -586,13 +586,13 @@ if st.button("Predict All Entered Patients", width="stretch"):
         ]
 
         st.success("Batch prediction completed.")
-        st.dataframe(result_df, width="stretch", hide_index=True)
+        st.dataframe(result_df, use_container_width=True, hide_index=True)
         st.download_button(
             "Download Prediction Results",
             result_df.to_csv(index=False).encode("utf-8"),
             "heart_disease_predictions.csv",
             "text/csv",
-            width="stretch",
+            use_container_width=True,
         )
     except Exception as error:
         st.error(f"Please complete all patient values before predicting. Details: {error}")
@@ -616,7 +616,7 @@ with st.expander("Model explanations and comparison"):
                 "ROC-AUC": row["roc_auc"],
             }
         )
-    st.dataframe(pd.DataFrame(model_rows), width="stretch", hide_index=True)
+    st.dataframe(pd.DataFrame(model_rows), use_container_width=True, hide_index=True)
 
 st.markdown(
     '<p class="small-note">Tip: In medical prediction, recall is very important because false negatives can be dangerous.</p>',
